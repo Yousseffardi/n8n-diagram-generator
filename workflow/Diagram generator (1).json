@@ -1,0 +1,408 @@
+{
+  "name": "Diagram generator",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('get').item.json.body.content }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an expert systems architect and automation workflow analyst. Your task is to analyze a project description OR an n8n workflow JSON and convert it into a structured JSON architecture used to generate a visual workflow diagram.\n\n# INPUT TYPES\nThe input will be one of:\nA) Free text describing a project or workflow.\nB) An n8n workflow export (JSON containing \"nodes\" and \"connections\").\n\nIf the input is n8n JSON:\n- Follow the \"connections\" object to determine the real execution order.\n- Use each node's \"name\" and \"type\" (e.g., n8n-nodes-base.httpRequest, @n8n/n8n-nodes-langchain.agent) to understand its role.\n- Ignore technical noise: node IDs, positions, credentials, webhookId, typeVersion, and sticky notes unless they describe the workflow.\n- Group consecutive low-level nodes into ONE logical step (e.g., Set + IF + Merge = \"Prepare Data\").\n- AI sub-nodes (Chat Model, Memory, Tool, Output Parser) are NOT steps. Attach them to their parent in central_component.attached_tools.\n- Clean noise from text input: remove citation markers like [cite: n], ads, \"Need Help?\" sections, and contact/promotional text.\n\n# OUTPUT\nReturn ONLY a valid JSON object. No markdown, no code fences, no explanations, no text before or after.\n\nSchema:\n{\n  \"infographic_title\": \"string, max 6 words, format '[System Name]: How It Works'\",\n  \"layout_type\": \"horizontal | snake\",\n  \"steps\": [\n    {\n      \"step_number\": 1,\n      \"title\": \"string, max 3 words\",\n      \"icon_description\": \"string, concrete line-icon concept\",\n      \"label\": \"string, max 5 words\",\n      \"sub_label\": \"string, max 10 words\"\n    }\n  ],\n  \"central_component\": {\n    \"box_title\": \"string\",\n    \"icon_description\": \"string\",\n    \"attached_tools\": [{ \"name\": \"string\", \"description\": \"string, max 6 words\" }]\n  } | null,\n  \"side_panel\": {\n    \"title\": \"string\",\n    \"icon_description\": \"string\",\n    \"label\": \"string, max 12 words\"\n  } | null,\n  \"bottom_panel\": {\n    \"title\": \"string\",\n    \"sequential_steps\": [\"string, max 6 words each, 3 to 4 items\"],\n    \"footer_note\": \"string, max 12 words\"\n  } | null,\n  \"tech_stack_footer\": [\"string\"]\n}\n\n# RULES\n1. steps: between 4 and 6 items. If the workflow has more, merge related ones. If fewer than 4, split logically without inventing features.\n2. layout_type: use \"horizontal\" for 4-5 steps, \"snake\" for 6.\n3. central_component, side_panel, bottom_panel: set to null if not clearly present. Never invent them.\n4. tech_stack_footer: only real tools/services found in the input (n8n, OpenAI, Airtable, Slack, Supabase...). Max 6 items, no duplicates.\n5. Keep every text SHORT. These texts are rendered inside an image; long text becomes unreadable.\n6. Never invent tools, integrations, or steps that are not in the input.\n7. Use the same language as the input for titles and labels, unless the input mixes languages; then use English.\n8. If the input is empty, unclear, or not a workflow, return: {\"error\": \"Insufficient workflow information\"}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        288,
+        -816
+      ],
+      "id": "08353003-f88a-4580-8c04-e94b28d78d90",
+      "name": "project information extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.6-luna",
+          "mode": "list",
+          "cachedResultName": "gpt-5.6-luna"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        -592
+      ],
+      "id": "fd662cbb-bfae-4e69-b796-93f9aba32899",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "W3bF5mnl5ksQ06uT",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-6-luna",
+          "mode": "list",
+          "cachedResultName": "gpt-6-luna"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        -592
+      ],
+      "id": "55c24eff-372f-4b41-83ac-01174c2787a0",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "W3bF5mnl5ksQ06uT",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/generations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_OPENAI_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-image-2.5-flare"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "n",
+              "value": "={{ Number(1) }}"
+            },
+            {
+              "name": "size",
+              "value": "1024x1024"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        -816
+      ],
+      "id": "40b2480b-d56a-46f8-ad4e-c6210c0c6588",
+      "name": "Generate image"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        -816
+      ],
+      "id": "af4e5f61-c020-4ca6-9a3e-983f1de85dd7",
+      "name": "get image"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=You are an expert AI prompt engineer specializing in technical visual diagrams and workflow architecture infographics.\n\nYour task: take a structured JSON describing a system/workflow and transform it into one highly detailed image generation prompt, strictly following the VISUAL STYLE below.\n\n### VISUAL STYLE (apply to the whole image):\n{{ $json.style_description }}\n\n\n### Rules that apply to EVERY style:\n- Text must be large, sharp, high-contrast against its background, and easy to read. English labels only.\n- Keep every label short; never shrink text to fit more content.\n- Consistent icon style across all steps, vector look, no photographs, no human faces.\n- No real brand logos except small footer icons.\n- Clean layout, generous spacing, no clutter.\n- Arrows show flow left to right, top to bottom.\n- Avoid text smaller than 14px equivalent.\n\n### Prompt template (output exactly this structure, adapting wording to the VISUAL STYLE):\n\nCreate a [style name in 2-3 words] infographic titled \"[infographic_title]\" in the style of a modern automated workflow diagram. [Restate the VISUAL STYLE in 1-2 sentences: background, colors, box shape, icon style]. Text must be large, sharp and easy to read. Use English labels only.\n\nLayout: [N] numbered steps arranged in a [layout_type] flow[, with a central \"[central_component.box_title]\" box if central_component exists][, and a side box if side_panel exists].\n\nFor each step:\nStep [step_number] - [title] (icon: [icon_description])\nLabel: \"[label]\"\nSub-label: \"[sub_label]\" (only if present)\n\nIf central_component is not null:\nCentral large box \"[box_title]\" with [icon_description]\nAttached tools: list each as \"name - description\"\n\nIf side_panel is not null:\nSide panel connected by a dashed line:\nTitle: \"[title]\", Icon: [icon_description], Label: \"[label]\"\n\nIf bottom_panel is not null:\nBottom panel \"[title]\" with sequential steps linked by arrows: 1) ... 2) ... 3) ...\nFooter note under the panel: \"[footer_note]\"\n\nFooter strip with small icons and labels: [tech_stack_footer items joined with \" | \"]\n\nClosing style note: repeat the key colors and look of the VISUAL STYLE in one sentence, then: consistent icons, no photographs, no faces, balanced spacing, readable text.\n\n### Output rule:\nOutput ONLY the final prompt text. No markdown, no code fences, no commentary."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        928,
+        -816
+      ],
+      "id": "c436d2c4-4347-4e35-9e4e-4d636c83bb27",
+      "name": "Image prompt writer"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e0aa521a-9003-403a-826b-b396111e4d4b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1b87ba2f-c5d2-478a-9066-bda79f3a52c9",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "n8n-json",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "n8n-json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -128,
+        -816
+      ],
+      "id": "f379fe48-906d-4db5-91ad-396d3daff909",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.description || $json.body?.description || '';\n\n// نظّف الضجيج\nlet text = input.replace(/\\[cite:\\s*[\\d,\\s]+\\]/g, '')\n                .split(/Need Help\\?/i)[0]\n                .trim();\n\n// هل هو n8n JSON؟\ntry {\n  const wf = JSON.parse(text);\n  if (wf.nodes && wf.connections) {\n    const nodes = wf.nodes\n      .filter(n => !n.type.includes('stickyNote'))\n      .map(n => ({\n        name: n.name,\n        type: n.type.split('.').pop()\n      }));\n\n    const flow = [];\n    for (const [from, outs] of Object.entries(wf.connections)) {\n      for (const branch of (outs.main || [])) {\n        for (const c of (branch || [])) flow.push(`${from} -> ${c.node}`);\n      }\n    }\n\n    return [{ json: { inputType: 'n8n-json', description: JSON.stringify({ nodes, flow }) } }];\n  }\n} catch (e) {}\n\nreturn [{ json: { inputType: 'text', description: text.slice(0, 6000) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -752
+      ],
+      "id": "ec0ec768-c7cf-4ac0-a413-4d4baa95a170",
+      "name": "clean n8n-json"
+    },
+    {
+      "parameters": {
+        "jsCode": "const STYLES = {\n  flat_corporate: {\n    label: \"Flat Corporate\",\n    description: \"Clean professional flat-design infographic. White or light gray background, navy blue primary elements, orange accents, rounded boxes, simple crisp line icons.\"\n  },\n  dark_neon: {\n    label: \"Dark Neon\",\n    description: \"Modern dark-mode tech diagram. Near-black background (#0B0F1A), glowing neon cyan and magenta accent lines, rounded dark-gray boxes with thin glowing borders, minimal glow line icons, white bold text.\"\n  },\n  minimal_mono: {\n    label: \"Minimal Mono\",\n    description: \"Ultra-minimal monochrome diagram. Pure white background, black thin outlines, a single accent color (orange), lots of whitespace, simple geometric icons, thin elegant arrows.\"\n  },\n  hand_drawn: {\n    label: \"Hand Drawn\",\n    description: \"Whiteboard sketch style. Off-white paper background, hand-drawn marker outlines, slightly imperfect boxes and arrows, doodle icons, blue and orange marker colors, large handwritten-style but clearly legible text.\"\n  },\n  isometric: {\n    label: \"Isometric 3D\",\n    description: \"Isometric 3D-style diagram. Light gradient background, small isometric blocks for each step, soft shadows, blue and orange palette, clean isometric icons, arrows flowing between blocks.\"\n  },\n  blueprint: {\n    label: \"Blueprint\",\n    description: \"Technical blueprint style. Deep blue background with white thin grid lines, white line-art boxes and icons, engineering-drawing look, monospace-style text, dashed connectors.\"\n  },\n  pastel_soft: {\n    label: \"Pastel Soft\",\n    description: \"Friendly soft pastel infographic. Cream background, pastel mint, peach and lavender rounded boxes, soft shadows, cute simple line icons, dark gray text for contrast.\"\n  }\n};\n\nconst body = $('get').first().json.body || {};\nconst key = STYLES[body.style] ? body.style : 'flat_corporate';\n\nreturn [{\n  json: {\n    ...$json,                       // يحافظ على output الخاص بالـ extractor\n    style_key: key,\n    style_description: STYLES[key].description\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -816
+      ],
+      "id": "0e82a14d-c3ba-4c42-8a07-1c037c4844fc",
+      "name": "chose style"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "diagram",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -816
+      ],
+      "id": "a9be0843-72d6-4310-9add-b30cc0cee6e1",
+      "name": "get",
+      "webhookId": "ed8cd6a9-29ea-4a42-ac70-8b8a13644c3e"
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1776,
+        -816
+      ],
+      "id": "849d1e6f-fef6-4dc7-af87-16313fc27222",
+      "name": "send image"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "project information extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "project information extractor": {
+      "main": [
+        [
+          {
+            "node": "chose style",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image prompt writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate image": {
+      "main": [
+        [
+          {
+            "node": "get image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image prompt writer": {
+      "main": [
+        [
+          {
+            "node": "Generate image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get image": {
+      "main": [
+        [
+          {
+            "node": "send image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "project information extractor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "clean n8n-json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "clean n8n-json": {
+      "main": [
+        [
+          {
+            "node": "project information extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chose style": {
+      "main": [
+        [
+          {
+            "node": "Image prompt writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2f30ea93-e9c3-40b2-a6b6-ff5f384a980c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ef7411436dfbdfc0052fdbedac206058acfbfd597339e1b5f223f7db4ba7433e"
+  },
+  "id": "FRzNtmuUyxkl2se8",
+  "tags": []
+}

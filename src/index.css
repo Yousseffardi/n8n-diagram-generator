@@ -1,0 +1,133 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --color-amber: #e8a54b;
+  --color-amber-soft: #f3c27a;
+  --color-ink: #1a1308;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-placeholder: var(--placeholder);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-panel: var(--panel);
+  --color-sunken: var(--sunken);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-line: var(--danger-line);
+}
+
+:root {
+  color-scheme: dark;
+  --canvas: #0b0c0f;
+  --fg: #f4efe6;
+  --muted: #a8a29e;
+  --faint: #78716c;
+  --placeholder: #57534e;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --panel: rgba(255, 255, 255, 0.04);
+  --sunken: rgba(0, 0, 0, 0.32);
+  --soft: #e7e5e4;
+  --accent: #e8a54b;
+  --danger: #fecaca;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-line: rgba(248, 113, 113, 0.28);
+  --glow:
+    radial-gradient(900px 480px at 12% -10%, rgba(232, 165, 75, 0.14), transparent 55%),
+    radial-gradient(700px 420px at 100% 8%, rgba(232, 165, 75, 0.06), transparent 50%);
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --canvas: #f3eee6;
+  --fg: #1c1712;
+  --muted: #6d655c;
+  --faint: #857c72;
+  --placeholder: #a3988c;
+  --line: rgba(48, 36, 22, 0.12);
+  --line-strong: rgba(48, 36, 22, 0.2);
+  --panel: #fffdf8;
+  --sunken: #efe8dc;
+  --soft: #3a332c;
+  --accent: #9a5d16;
+  --danger: #9f1239;
+  --danger-bg: rgba(225, 29, 72, 0.08);
+  --danger-line: rgba(190, 18, 60, 0.22);
+  --glow:
+    radial-gradient(900px 480px at 12% -10%, rgba(232, 165, 75, 0.28), transparent 55%),
+    radial-gradient(700px 420px at 100% 8%, rgba(232, 165, 75, 0.14), transparent 50%);
+  --shadow: 0 18px 50px rgba(70, 48, 18, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.theme-glow {
+  background: var(--glow);
+}
+
+.theme-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+
+:root[data-theme='light'] .theme-noise {
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+.shadow-panel {
+  box-shadow: var(--shadow);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.45s ease-out;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.85s linear infinite;
+}
