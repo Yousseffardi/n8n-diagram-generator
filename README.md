@@ -1,16 +1,30 @@
-# React + Vite
+# n8n Diagram Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Paste a project description or an n8n workflow JSON and get a clean
+architecture diagram as a PNG. Choose from multiple visual styles.
 
-Currently, two official plugins are available:
+<img width="1287" height="708" alt="image" src="https://github.com/user-attachments/assets/6e2e56ba-0895-4df9-9d30-d8ca582ba097" />
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## React Compiler
+## How it works
+<img width="1024" height="1024" alt="n8n-diagram" src="https://github.com/user-attachments/assets/02063e2f-0ebf-4bd3-91bd-c8f8e139790e" />
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React UI → n8n Webhook → Switch (text / n8n-json) → Code (summarize)
+→ LLM extractor → Style presets → Image prompt writer → OpenAI Image API → PNG
 
-## Expanding the Oxlint configuration
+## Setup
+1. Import `workflow/diagram-generator.json` into n8n
+2. Add your OpenAI credentials and activate the workflow
+3. Copy the webhook URL
+4. In the project:
+   ```bash
+   cp .env.example .env     # then paste your webhook URL
+   npm install
+   npm run dev
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Tech
+React, Vite, n8n, OpenAI
+
+## Styles
+Flat Corporate, Dark Neon, Minimal, Hand Drawn, Blueprint, Isometric, Pastel
